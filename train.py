@@ -8,27 +8,28 @@ import torch.nn as nn
 import torch.optim as optim
 from tqdm import tqdm
 from horn_quality.data import DataConfig, create_dataloaders
-from horn_quality.model import build_horn_quality_model
-from horn_quality.utils import set_global_seed, evaluate_classification, save_checkpoint
+from horn_quality.model import build_horn_quality_model, build_horn_quality_model_lite
+ from horn_quality.utils import set_global_seed, evaluate_classification, save_checkpoint
 
 
 @dataclass
-class TrainConfig:
-	dataset_dir: str
-	output_dir: str = "./outputs"
-	seed: int = 42
-	sample_rate: int = 16000
-	duration_sec: float = 4.0
-	batch_size: int = 32
-	lr: float = 3e-4
-	weight_decay: float = 1e-4
-	epochs: int = 50
-	patience: int = 8
-	base_channels: int = 64
-	dropout: float = 0.1
-	se_reduction: int = 8
-	augment: bool = True
-	device: str = "cuda" if torch.cuda.is_available() else "cpu"
+ class TrainConfig:
+ 	dataset_dir: str
+ 	output_dir: str = "./outputs"
+ 	seed: int = 42
+ 	sample_rate: int = 16000
+ 	duration_sec: float = 4.0
+ 	batch_size: int = 32
+ 	lr: float = 3e-4
+ 	weight_decay: float = 1e-4
+ 	epochs: int = 50
+ 	patience: int = 8
+ 	base_channels: int = 64
+ 	dropout: float = 0.1
+ 	se_reduction: int = 8
+ 	augment: bool = True
+ 	model_variant: str = "lite"  # "lite" or "advanced"
+ 	device: str = "cuda" if torch.cuda.is_available() else "cpu"
 
 
 def train_epoch(model, loader, criterion, optimizer, device):
@@ -65,8 +66,9 @@ def main(args=None):
 	parser = argparse.ArgumentParser()
 	parser.add_argument("--dataset_dir", type=str, required=True)
 	parser.add_argument("--output_dir", type=str, default="./outputs")
-	parser.add_argument("--config", type=str, default=None, help="Optional YAML config file")
-	cli = parser.parse_args(args)
+		parser.add_argument("--config", type=str, default=None, help="Optional YAML config file")
+ 	parser.add_argument("--model_variant", type=str, default="lite", choices=["lite", "advanced"]) 
+ 	cli = parser.parse_args(args)
 
 	# Load default config and override from YAML if provided
 	cfg = TrainConfig(dataset_dir=cli.dataset_dir, output_dir=cli.output_dir)
